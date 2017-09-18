@@ -13,8 +13,6 @@
 #include <string.h>
 #include <mpi.h>
 
-// Global declaration max
-double max = 0;
 
 // Function to create a matrix
 void create_matrix(unsigned int*** matrix, int row, int col, bool is_zero)
@@ -68,6 +66,7 @@ void multiply_matrix(unsigned int*** matrix_one, unsigned int*** matrix_two,
 void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_bounds, int row, int col)
 {
     double square_sum = 0;
+    double max = 0;
     int col_chunks = col / 3;
     int low_col = 0;
     int high_col = 3;
@@ -75,7 +74,7 @@ void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_boun
     int new_upper_bounds = 3 + lower_bounds;
     int new_lower_bounds = lower_bounds;
 
-    while (new_lower_bounds < upper_bounds-1)
+    while (new_upper_bounds < upper_bounds)
     {
         while (low_col < col) 
         {

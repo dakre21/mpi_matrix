@@ -34,5 +34,5 @@ module load openmpi
 cd /extra/dakre/mpi_matrix
 ### run your executable program with begin and end date and time output
 date
-mpirun -n 1 matrix ${marg}
+mpirun -n 4 matrix ${marg}
 date

@@ -144,7 +144,7 @@ int main (int argc, char *argv[])
     {
         if (strcmp(argv[1], "4") == 0)
         {
-            MPI_Bcast(&matrix_two, row_two*col_two, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+            MPI_Bcast(*matrix_two, row_two*col_two, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
             if (rank == 0)
             {
@@ -161,7 +161,7 @@ int main (int argc, char *argv[])
                     {
                         upper_bounds = lower_bounds + (row_two / (size - 1));
                     }
-                   
+                  
                     MPI_Isend(&lower_bounds, 1, MPI_INT, i+1, 1, MPI_COMM_WORLD, &request);
                     MPI_Isend(&upper_bounds, 1, MPI_INT, i+1, 1, MPI_COMM_WORLD, &request);
                 }
@@ -205,7 +205,6 @@ int main (int argc, char *argv[])
         {
             start = MPI_Wtime();
             calc_matrix_filter(&matrix_two, 0, row_two, row_two, col_two); 
-            printf("%u %u\n", matrix_two[1][1], matrix_two[255][255]);
             finish = MPI_Wtime();
 
             printf("Total computation time %.4f on process %d\n", 
