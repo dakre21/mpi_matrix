@@ -28,14 +28,13 @@ int main (int argc, char *argv[])
 {
     // Forward declaration of matrix variables
     int upper_bounds, lower_bounds;
-    int row_one = 511;
-    int col_one = 511;
-    int row_two = 255;
-    int col_two = 255;
+    int row_one = 512;
+    int col_one = 512;
+    int row_two = 256;
+    int col_two = 256;
     unsigned int** matrix_one; 
     unsigned int** matrix_two;
-    unsigned int** matrix_product_one;
-    unsigned int** matrix_product_two;
+    unsigned int** matrix_product;
 
     // Forward declaration of mpi variables
     MPI_Status status;
@@ -44,10 +43,9 @@ int main (int argc, char *argv[])
     int size, rank;
 
     // Forward initialization of all matrices used
-    create_matrix(matrix_one, row_one, col_one);
-    create_matrix(matrix_two, row_two, col_two);
-    create_matrix(row_one, col_one, matrix_product_one);
-    create_matrix(row_two, col_two, matrix_product_two);
+    create_matrix(&matrix_one, row_one, col_one, false);
+    create_matrix(&matrix_two, row_two, col_two, false);
+    create_matrix(&matrix_product, row_one, col_one, true);
 
     // Initialize MPI execution environment
     MPI_Init(&argc, &argv);
@@ -67,8 +65,8 @@ int main (int argc, char *argv[])
         if (strcmp(argv[1], "3") == 0)
         {
             // Initially broadcast matrices to multiply
-            MPI_Bcast(*matrix_one, row*col, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-            MPI_Bcast(*matrix_two, row*col, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+            MPI_Bcast(*matrix_one, row_one*col_one, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+            MPI_Bcast(*matrix_two, row_one*col_one, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
             // If master process, initialize matrices and publish them 
             // to worker nodes
@@ -78,15 +76,15 @@ int main (int argc, char *argv[])
             {
                 for (int i = 0; i < (size - 1); i++)
                 {
-                    lower_bounds = (row / (size - 1)) * i;
+                    lower_bounds = (row_one / (size - 1)) * i;
 
                     if ((i + 1) == (size - 1))
                     {
-                        upper_bounds = row;
+                        upper_bounds = row_one;
                     }
                     else
                     {
-                        upper_bounds = lower_bounds + (row / (size - 1));
+                        upper_bounds = lower_bounds + (row_one / (size - 1));
                     }
                     
                     MPI_Isend(&lower_bounds, 1, MPI_INT, i+1, 1, MPI_COMM_WORLD, &request);
@@ -99,7 +97,7 @@ int main (int argc, char *argv[])
                 {
                     MPI_Recv(&lower_bounds, 1, MPI_INT, i, 2, MPI_COMM_WORLD, &status);
                     MPI_Recv(&upper_bounds, 1, MPI_INT, i, 2, MPI_COMM_WORLD, &status);
-                    MPI_Recv(&matrix_product[lower_bounds][0], (upper_bounds - lower_bounds) * col, 
+                    MPI_Recv(&matrix_product[lower_bounds][0], (upper_bounds - lower_bounds) * col_one, 
                             MPI_UNSIGNED, i, 2, MPI_COMM_WORLD, &status);
                     MPI_Recv(&start, 1, MPI_DOUBLE, i, 2, MPI_COMM_WORLD, &status);
                     MPI_Recv(&finish, 1, MPI_DOUBLE, i, 2, MPI_COMM_WORLD, &status);
@@ -117,13 +115,13 @@ int main (int argc, char *argv[])
                 MPI_Recv(&upper_bounds, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
 
                 start = MPI_Wtime();
-                matrix_product = multiply_matrix(matrix_one, matrix_two, matrix_product,
-                        lower_bounds, upper_bounds);
+                multiply_matrix(&matrix_one, &matrix_one, &matrix_product,
+                        lower_bounds, upper_bounds, row_one, col_one);
                 finish = MPI_Wtime();
 
                 MPI_Isend(&lower_bounds, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&upper_bounds, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
-                MPI_Isend(&matrix_product[lower_bounds][0], (upper_bounds - lower_bounds) * col, 
+                MPI_Isend(&matrix_product[lower_bounds][0], (upper_bounds - lower_bounds) * col_one, 
                         MPI_UNSIGNED, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&start, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&finish, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request); 
@@ -132,11 +130,10 @@ int main (int argc, char *argv[])
         else
         {
             start = MPI_Wtime();
-            matrix_product = multiply_matrix(matrix_one, matrix_two, matrix_product, 0, row);
+            multiply_matrix(&matrix_one, &matrix_one, &matrix_product, 0, row_one, row_one, col_one);
             finish = MPI_Wtime();
 
-            printf("Total computation time %.4f on process %d\n", 
-                    (finish - start), rank);
+            printf("Total computation time %.4f seconds on process %d\n", (finish - start), rank);
         }
     }
     else if (strcmp(argv[1], "2") == 0 || strcmp(argv[1], "4") == 0)
@@ -218,6 +215,11 @@ int main (int argc, char *argv[])
         printf("ERROR: Invalid input argument %s\n", argv[1]);
         exit(-1);
     }
+
+    // Release matrix memory from heap
+    free_matrix(&matrix_one, row_one);
+    free_matrix(&matrix_two, row_two);
+    free_matrix(&matrix_product, row_one);
 
     // Terminate MPI execution environment
     MPI_Finalize();

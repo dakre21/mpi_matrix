@@ -31,8 +31,8 @@ fi
 
 module load openmpi
 ### set directory for job execution
-cd matrix_mpi
+cd /extra/dakre/mpi_matrix
 ### run your executable program with begin and end date and time output
 date
-mpirun -n 4 matrix ${marg}
+mpirun -n 64 matrix ${marg}
 date
