@@ -35,6 +35,7 @@ int main (int argc, char *argv[])
     unsigned int** matrix_one; 
     unsigned int** matrix_two;
     unsigned int** matrix_product;
+    unsigned int** matrix_filter;
 
     // Forward declaration of mpi variables
     MPI_Status status;
@@ -46,6 +47,7 @@ int main (int argc, char *argv[])
     create_matrix(&matrix_one, row_one, col_one, false);
     create_matrix(&matrix_two, row_two, col_two, false);
     create_matrix(&matrix_product, row_one, col_one, true);
+    create_matrix(&matrix_filter, row_two, col_two, true);
 
     // Initialize MPI execution environment
     MPI_Init(&argc, &argv);
@@ -140,7 +142,7 @@ int main (int argc, char *argv[])
     {
         if (strcmp(argv[1], "4") == 0)
         {
-            MPI_Bcast(*matrix_three, row*col, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&matrix_two, row_two*col_two, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
             if (rank == 0)
             {
@@ -148,14 +150,14 @@ int main (int argc, char *argv[])
 
                 for (int i = 0; i < (size - 1); i++)
                 {
-                    lower_bounds = (row / (size - 1)) * i;
+                    lower_bounds = (row_two / (size - 1)) * i;
                     if ((i + 1) == (size - 1))
                     {
-                        upper_bounds = row;
+                        upper_bounds = row_two;
                     }
                     else
                     {
-                        upper_bounds = lower_bounds + (row / (size - 1));
+                        upper_bounds = lower_bounds + (row_two / (size - 1));
                     }
                    
                     MPI_Isend(&lower_bounds, 1, MPI_INT, i+1, 1, MPI_COMM_WORLD, &request);
@@ -167,8 +169,9 @@ int main (int argc, char *argv[])
                     MPI_Recv(&lower_bounds, 1, MPI_INT, i, 2, MPI_COMM_WORLD, &status);
                     MPI_Recv(&upper_bounds, 1, MPI_INT, i, 2, MPI_COMM_WORLD, &status);
 
-                    // TODO: Recv partial image filter from prc here
-                    
+                    MPI_Recv(&matrix_filter[lower_bounds][0], (upper_bounds - lower_bounds) * col_two, 
+                            MPI_UNSIGNED, i, 2, MPI_COMM_WORLD, &status);
+ 
                     MPI_Recv(&start, 1, MPI_DOUBLE, i, 2, MPI_COMM_WORLD, &status);
                     MPI_Recv(&finish, 1, MPI_DOUBLE, i, 2, MPI_COMM_WORLD, &status);
                 }
@@ -185,15 +188,13 @@ int main (int argc, char *argv[])
                 MPI_Recv(&upper_bounds, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
 
                 start = MPI_Wtime();
-
-                // TODO: Perform image filter proc in parallel
-
+                calc_matrix_filter(&matrix_two, lower_bounds, upper_bounds, row_two, col_two); 
                 finish = MPI_Wtime();
 
                 MPI_Isend(&lower_bounds, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&upper_bounds, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, &request);
-                MPI_Isend(&sum, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request);
-                MPI_Isend(&max, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request);
+                MPI_Isend(&matrix_two[lower_bounds][0], (upper_bounds - lower_bounds) * col_two, 
+                        MPI_UNSIGNED, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&start, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request);
                 MPI_Isend(&finish, 1, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD, &request); 
             }
@@ -201,9 +202,7 @@ int main (int argc, char *argv[])
         else
         {
             start = MPI_Wtime();
-
-            // TODO: Perform image filter proc
-
+            calc_matrix_filter(&matrix_two, lower_bounds, upper_bounds, row_two, col_two); 
             finish = MPI_Wtime();
 
             printf("Total computation time %.4f on process %d\n", 

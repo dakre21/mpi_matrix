@@ -75,33 +75,46 @@ void multiply_matrix(unsigned int*** matrix_one, unsigned int*** matrix_two,
     }
 }
 
-// Function helper to perform square sum
-double calc_square_sum(unsigned int*** matrix, int lower_bounds, int upper_bounds, 
-        int row, int col)
-{
-    double square_sum = 0;
-    int col_chunks = col / 3;
-    int row_chunks = (upper_bounds - lower_bounds) / 3;
-
-    for (int i = lower_bounds; i < upper_bounds; i++)
-    {
-        for (int j = 0; j < col; j++)
-        {
-            if ((*matrix)[i][j] > max) 
-            {
-                max = (*matrix)[i][j];
-            }
-
-            square_sum += (*matrix)[i][j] * (*matrix)[i][j];
-        }
-    }
-
-    return square_sum;
-}
-
-// Function to help perform image filtering on matrix
+// Function to help perform mean image filtering on matrix
 void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_bounds, int row, int col)
 {
-    // Get num chunks for 3x3 filter
-    unsigned int square_sum = floor(sqrt(calc_square_sum(matrix, lower_bounds, upper_bounds, row, col) / max));
+    double square_sum = 0;
+    int count = 1;
+    int col_chunks = col / 3;
+    int low_col = 0;
+    int high_col = 3;
+    int row_chunks = (upper_bounds - lower_bounds) / 3;
+    int new_upper_bounds = 3 + lower_bounds;
+    int new_lower_bounds = lower_bounds;
+
+    while (new_lower_bounds < upper_bounds)
+    {
+        while (low_col < col) 
+        {
+            for (int i = new_lower_bounds; i < new_upper_bounds; i++)
+            {
+                for (int j = low_col; j < high_col; j++)
+                {
+                    if ((*matrix)[i][j] > max) 
+                    {
+                        max = (*matrix)[i][j];
+                    }
+
+                    square_sum += (*matrix)[i][j] * (*matrix)[i][j];
+                    count += 1;
+                }
+            }
+
+            low_col = high_col;
+            high_col += 3;
+
+            (*matrix)[count/2][count/2] = floor(sqrt(square_sum / max));
+        }
+
+        low_col = 0;
+        high_col = 3;
+
+        new_lower_bounds = new_upper_bounds;
+        new_upper_bounds += 3;
+    }
 }
