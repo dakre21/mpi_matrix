@@ -47,17 +47,6 @@ void create_matrix(unsigned int*** matrix, int row, int col, bool is_zero)
     }
 }
 
-void free_matrix(unsigned int*** matrix, int row)
-{
-    // Free 2D array from heap
-    for (int i = 0; i < row; i++)
-    {
-        free((*matrix)[i]);
-    }
-
-    free(matrix);
-}
-
 // Function to help multiple two matrices
 void multiply_matrix(unsigned int*** matrix_one, unsigned int*** matrix_two, 
         unsigned int*** matrix_product, int lower_bounds, int upper_bounds, 

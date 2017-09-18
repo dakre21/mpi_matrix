@@ -215,11 +215,6 @@ int main (int argc, char *argv[])
         exit(-1);
     }
 
-    // Release matrix memory from heap
-    free_matrix(&matrix_one, row_one);
-    free_matrix(&matrix_two, row_two);
-    free_matrix(&matrix_product, row_one);
-
     // Terminate MPI execution environment
     MPI_Finalize();
 
