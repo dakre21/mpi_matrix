@@ -75,7 +75,7 @@ void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_boun
     int new_upper_bounds = 3 + lower_bounds;
     int new_lower_bounds = lower_bounds;
 
-    while (new_lower_bounds < upper_bounds)
+    while (new_lower_bounds < upper_bounds-1)
     {
         while (low_col < col) 
         {
@@ -95,7 +95,7 @@ void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_boun
             low_col = high_col;
             high_col += 3;
 
-            (*matrix)[new_upper_bounds/2][low_col/2] = floor(sqrt(square_sum / max));
+            (*matrix)[new_upper_bounds/2][high_col/2] = floor(sqrt(square_sum / max));
         }
 
         low_col = 0;

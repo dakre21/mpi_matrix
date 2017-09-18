@@ -1,6 +1,6 @@
 /* Author: David Akre
  * Date: 9/3/17
- * Description: Part 1 of hw1
+ * Description: Part 1 of hw2
  * - Apply a simple matrix multiplication and test the two 
  *   matrices by running it serially first followed by
  *   parallelized mechanism. Compare the total execution
@@ -8,7 +8,7 @@
  *   Additionally, profile the code to show the computing
  *   to communication ratios. 
  *
- * Description: Part 2 of h1
+ * Description: Part 2 of h2
  * - Apply a filter on an image using the window size 3x3
  *   for a matrix size 256x256.
  *
@@ -18,6 +18,8 @@
  *   - arg: 2 run part 2 
  *   - arg: 3 run part 1 in parallel
  *   - arg: 4 run part 2 in parallel
+ *
+ * NOTE: This code heavily uses mpi for parallelization
  */
 
 #include <matrix_ops.h>
@@ -203,6 +205,7 @@ int main (int argc, char *argv[])
         {
             start = MPI_Wtime();
             calc_matrix_filter(&matrix_two, 0, row_two, row_two, col_two); 
+            printf("%u %u\n", matrix_two[1][1], matrix_two[255][255]);
             finish = MPI_Wtime();
 
             printf("Total computation time %.4f on process %d\n", 
