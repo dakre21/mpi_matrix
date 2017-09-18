@@ -202,7 +202,7 @@ int main (int argc, char *argv[])
         else
         {
             start = MPI_Wtime();
-            calc_matrix_filter(&matrix_two, lower_bounds, upper_bounds, row_two, col_two); 
+            calc_matrix_filter(&matrix_two, 0, row_two, row_two, col_two); 
             finish = MPI_Wtime();
 
             printf("Total computation time %.4f on process %d\n", 
