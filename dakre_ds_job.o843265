@@ -1,0 +1,12 @@
+Sun Sep 17 21:01:27 MST 2017
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 17134 on node i1n18 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Sun Sep 17 21:01:35 MST 2017
+
+You may want to consider changing your batch submission script as follows to speed up your job run next time:
+
+#PBS -l select=4:ncpus=28:mem=1gb
+#PBS -l place=free:shared
+#PBS -l walltime=00:05:00
+

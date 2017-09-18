@@ -68,7 +68,6 @@ void multiply_matrix(unsigned int*** matrix_one, unsigned int*** matrix_two,
 void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_bounds, int row, int col)
 {
     double square_sum = 0;
-    int count = 1;
     int col_chunks = col / 3;
     int low_col = 0;
     int high_col = 3;
@@ -90,14 +89,13 @@ void calc_matrix_filter(unsigned int*** matrix, int lower_bounds, int upper_boun
                     }
 
                     square_sum += (*matrix)[i][j] * (*matrix)[i][j];
-                    count += 1;
                 }
             }
 
             low_col = high_col;
             high_col += 3;
 
-            (*matrix)[count/2][count/2] = floor(sqrt(square_sum / max));
+            (*matrix)[new_upper_bounds/2][low_col/2] = floor(sqrt(square_sum / max));
         }
 
         low_col = 0;
